@@ -1,6 +1,7 @@
 package estudo.caio.receitascomia.controller;
 
-import estudo.caio.receitascomia.DTO.FoodDTO;
+import estudo.caio.receitascomia.dto.FoodDTO;
+import estudo.caio.receitascomia.dto.GerarReceitaRequest; // Import do DTO que criamos
 import estudo.caio.receitascomia.service.FoodItemService;
 import estudo.caio.receitascomia.service.RecipeAiService;
 import jakarta.validation.Valid;
@@ -16,9 +17,8 @@ import java.util.List;
 public class FoodItemController {
 
     private final FoodItemService foodItemservice;
-    private final RecipeAiService recipeAiService; // 1. Declarar a variável do service da IA
+    private final RecipeAiService recipeAiService;
 
-    // 0. Injetar ambos os services pelo construtor unificado
     public FoodItemController(FoodItemService foodItemservice, RecipeAiService recipeAiService) {
         this.foodItemservice = foodItemservice;
         this.recipeAiService = recipeAiService;
@@ -36,7 +36,7 @@ public class FoodItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(foodCreate);
     }
 
-    // 2. READ - Listar todos
+    // 2. READ - Listar todos (Usado para popular a seleção no front-end)
     @GetMapping("/listar")
     public ResponseEntity<List<FoodDTO>> listarReceitas() {
         return ResponseEntity.status(HttpStatus.OK).body(foodItemservice.listar());
@@ -63,11 +63,23 @@ public class FoodItemController {
         return ResponseEntity.noContent().build();
     }
 
-    // 6. GET para a I.A preparar a receita
-    @GetMapping("/gerar-receita")
-    public ResponseEntity<String> gerarReceita() {
-        // 3. Chamar usando a INSTÂNCIA (recipeAiService com letra minúscula)
-        String receita = recipeAiService.gerarReceitaComIngredientesDaGeladeira();
+    // 6. POST para a I.A preparar a receita com base nos itens selecionados no front-end
+    @PostMapping("/gerar-receita")
+    public ResponseEntity<String> gerarReceita(@RequestBody GerarReceitaRequest request) {
+        String receita = recipeAiService.gerarReceitaComIngredientesSelecionados(request);
         return ResponseEntity.ok(receita);
     }
+
+    //7.VALIDAÇÃO DE KEY
+    @GetMapping("/status-ai")
+    public ResponseEntity<Boolean> verificarStatusAi() {
+        try {
+            // Envia uma mensagem mínima de teste para a IA
+            String resposta = recipeAiService.testarConexaoSimples(); // método rápido que retorna uma string curta
+            return ResponseEntity.ok(true);
+        } catch (Exception e) {
+            return ResponseEntity.ok(false);
+        }
+    }
+
 }

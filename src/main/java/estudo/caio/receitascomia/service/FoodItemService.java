@@ -1,6 +1,6 @@
 package estudo.caio.receitascomia.service;
 
-import estudo.caio.receitascomia.DTO.FoodDTO;
+import estudo.caio.receitascomia.dto.FoodDTO;
 import estudo.caio.receitascomia.model.FoodItem;
 import estudo.caio.receitascomia.repository.FoodItemRepository;
 import jakarta.persistence.EntityNotFoundException;

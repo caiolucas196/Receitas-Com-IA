@@ -1,4 +1,4 @@
-package estudo.caio.receitascomia.DTO;
+package estudo.caio.receitascomia.dto;
 
 import estudo.caio.receitascomia.enums.Category;
 import estudo.caio.receitascomia.enums.UnitOfMeasure;
