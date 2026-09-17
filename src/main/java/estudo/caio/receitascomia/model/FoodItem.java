@@ -1,6 +1,7 @@
 package estudo.caio.receitascomia.model;
 
-import estudo.caio.receitascomia.enums.Category; // Importando o enum criado
+import estudo.caio.receitascomia.enums.Category;
+import estudo.caio.receitascomia.enums.UnitOfMeasure;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,10 +23,15 @@ public class FoodItem {
     @Column(nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING) // Salva o texto da categoria no banco (ex: "GRÃOS") em vez de um número
+    @Enumerated(EnumType.STRING)
     private Category category;
 
-    private Integer quantity;
+    @Column(nullable = false)
+    private Double quantity; // Alterado para Double para aceitar frações (ex: 1.5 kg ou 500 ml)
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UnitOfMeasure unit; // Nova unidade de medida (QUILOGRAMA, GRAMA, LITRO, MILILITRO, UNIDADE)
 
     private LocalDate validade;
 }

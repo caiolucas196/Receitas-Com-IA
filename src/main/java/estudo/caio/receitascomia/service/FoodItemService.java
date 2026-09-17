@@ -18,33 +18,69 @@ public class FoodItemService {
         this.foodItemRepository = foodItemRepository;
     }
 
-    public List<FoodItem> listar() {
-        return foodItemRepository.findAll();
+    // Listar todos
+    public List<FoodDTO> listar() {
+        return foodItemRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
+    // Buscar por ID
+    public FoodDTO buscarPorId(Long id) {
+        FoodItem item = foodItemRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Item não encontrado com o ID: " + id));
+        return toDTO(item);
+    }
+
+    // Adicionar (Create)
     public FoodDTO adicionarReceita(FoodDTO dto) {
         FoodItem foodItem = toEntity(dto);
         FoodItem salvo = foodItemRepository.save(foodItem);
         return toDTO(salvo);
     }
 
-    // Métodos auxiliares de conversão (Mapper) entre DTO e Entity
+    // Atualizar (Update)
+    public FoodDTO atualizar(Long id, FoodDTO dto) {
+        FoodItem itemExistente = foodItemRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Item não encontrado com o ID: " + id));
+
+        itemExistente.setName(dto.name());
+        itemExistente.setCategory(dto.category());
+        itemExistente.setQuantity(dto.quantity());
+        itemExistente.setValidade(dto.validade());
+
+        FoodItem atualizado = foodItemRepository.save(itemExistente);
+        return toDTO(atualizado);
+    }
+
+    // Deletar (Delete)
+    public void deletar(Long id) {
+        if (!foodItemRepository.existsById(id)) {
+            throw new EntityNotFoundException("Item não encontrado com o ID: " + id);
+        }
+        foodItemRepository.deleteById(id);
+    }
+
+    // Metodo auxiliar: Entity para DTO
     private FoodDTO toDTO(FoodItem item) {
         return new FoodDTO(
                 item.getId(),
                 item.getName(),
                 item.getCategory(),
                 item.getQuantity(),
+                item.getUnit(),
                 item.getValidade()
         );
     }
 
+    // Metodo auxiliar: DTO para Entity
     private FoodItem toEntity(FoodDTO dto) {
         FoodItem item = new FoodItem();
         item.setId(dto.id());
         item.setName(dto.name());
         item.setCategory(dto.category());
         item.setQuantity(dto.quantity());
+        item.setUnit(dto.unit());
         item.setValidade(dto.validade());
         return item;
     }
