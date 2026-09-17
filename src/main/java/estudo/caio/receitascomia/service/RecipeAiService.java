@@ -3,12 +3,11 @@ package estudo.caio.receitascomia.service;
 import estudo.caio.receitascomia.dto.GerarReceitaRequest;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -17,42 +16,54 @@ public class RecipeAiService {
 
     private final ChatModel chatModel;
 
-    public RecipeAiService(ChatModel chatModel) {
+    // Forçamos o uso do Google GenAI (Gemini) através do @Qualifier
+    public RecipeAiService(@Qualifier("googleGenAiChatModel") ChatModel chatModel) // ou "deepSeekChatModel" ou "googleGenAiChatModel"
+     {
         this.chatModel = chatModel;
     }
 
     public String gerarReceitaComIngredientesSelecionados(GerarReceitaRequest request) {
-        if (request.getIngredientes() == null || request.getIngredientes().isEmpty()) {
-            return "com o que você selecionou, não é possível gerar uma receita.";
-        }
-
-        // 1. Transforma a lista de ingredientes enviados pelo front-end em um texto estruturado
+        // Formata os ingredientes enviados pelo front-end em um texto claro
         String ingredientesStr = request.getIngredientes().stream()
-                .map(ing -> ing.getQuantidade() + " " + ing.getUnidade() + " de " + ing.getNome())
-                .collect(Collectors.joining(", "));
+                .map(i -> "- " + i.getNome() + ": " + i.getQuantidade() + " " + i.getUnidade())
+                .collect(Collectors.joining("\n"));
 
-        // 2. System Prompt rígido (Anti-alucinação e Economia de Tokens)
-        String systemPromptText =
-                "Você é um assistente culinário robótico, extremamente frio, direto e focado em economia máxima de tokens. " +
-                        "REGRAS OBRIGATÓRIAS:\n" +
-                        "1. Utilize estritamente APENAS os ingredientes e quantidades fornecidos na lista do usuário. É expressamente PROIBIDO inventar ou alucinar ingredientes adicionais.\n" +
-                        "2. Se os ingredientes fornecidos forem insuficientes, incompatíveis ou impossibilitarem o preparo de um prato real, retorne exatamente e unicamente esta frase, sem mais nada: 'com o que você selecionou, não é possível gerar uma receita'.\n" +
-                        "3. Responda no formato estrito: 'receita: [nome do prato] / [ingredientes e quantidades usados] - [modo de preparo resumido em passos curtos]'.\n" +
-                        "4. Não utilize saudações, introduções, explicações ou qualquer texto além do formato especificado.";
+        String instrucaoExtra = request.getInstrucaoUsuario() != null && !request.getInstrucaoUsuario().isEmpty()
+                ? request.getInstrucaoUsuario()
+                : "Nenhuma instrução adicional.";
 
-        SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(systemPromptText);
-        Message systemMessage = systemPromptTemplate.createMessage();
+        // Prompt estrito com regras "frias" e diretas exigidas
+        String templateMensagem = """
+            Você é um assistente culinário estrito e objetivo.
+            Sua tarefa é criar uma receita baseada **EXCLUSIVAMENTE** nos ingredientes fornecidos abaixo.
+            Proibido adicionar qualquer ingrediente que não esteja na lista.
+            Mantenha o tom frio, direto e estritamente factual.
+            
+            Formato obrigatório da resposta:
+            receita: [nome do prato] / [ingredientes e quantidades] - [modo de preparo passo a passo em até 3 frases].
+            
+            Ingredientes disponíveis na despensa:
+            {ingredientes}
+            
+            Instrução do usuário:
+            {instrucao}
+            """;
 
-        // 3. Monta a mensagem do usuário com os itens escolhidos e a instrução extra (se houver)
-        StringBuilder userContent = new StringBuilder("Ingredientes selecionados: " + ingredientesStr);
-        if (request.getInstrucaoUsuario() != null && !request.getInstrucaoUsuario().isBlank()) {
-            userContent.append(". Instrução extra: ").append(request.getInstrucaoUsuario());
+        PromptTemplate promptTemplate = new PromptTemplate(templateMensagem);
+        Map<String, Object> variaveis = new HashMap<>();
+        variaveis.put("ingredientes", ingredientesStr);
+        variaveis.put("instrucao", instrucaoExtra);
+
+        Prompt prompt = promptTemplate.create(variaveis);
+
+        // Dispara a chamada para o modelo de IA (Spring AI / Gemini)
+        var resposta = chatModel.call(prompt);
+
+        // Extrai o texto da resposta utilizando o metodo correto da API do Spring AI (.getText())
+        if (resposta != null && resposta.getResult() != null && resposta.getResult().getOutput() != null) {
+            return resposta.getResult().getOutput().getText();
         }
-        UserMessage userMessage = new UserMessage(userContent.toString());
 
-        // 4. Envia o prompt combinando as regras de sistema e a mensagem do usuário para o Gemini via Spring AI
-        Prompt prompt = new Prompt(List.of(systemMessage, userMessage));
-
-        return chatModel.call(prompt).getResult().getOutput().getContent();
+        return "Erro: A I.A. não retornou uma resposta válida.";
     }
 }

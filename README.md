@@ -35,8 +35,24 @@ Substitua o placeholder no arquivo de propriedades:
 >>spring.ai.openai.api-key={SUA_CHAVE_AQUI}
 >
 >(ou a propriedade correspondente ao provedor configurado no Spring AI)
+> 
+> >#### Caso você deseje utilizar outro modelo de LLM, siga os passos abaixo:
+> 
+>Configure a chave de API correta no seu arquivo de propriedades (application.properties ou .env):
+>>Para Google Gemini: spring.ai.google.genai.api-key= SUA_CHAVE
+> 
+>>Para OpenAI: spring.ai.openai.api-key= SUA_CHAVE
+> 
+>>Para DeepSeek: spring.ai.deepseek.api-key= SUA_CHAVE
+> 
+>Altere o Qualifier no código (RecipeAiService.java):
+No construtor da classe RecipeAiService, mude o parâmetro do @Qualifier para o modelo desejado:
+>
+>>public RecipeAiService(@Qualifier("openAiChatModel") ChatModel chatModel) { // ou "deepSeekChatModel" ou "googleGenAiChatModel"
+this.chatModel = chatModel;
+}
 
-Execute a aplicação utilizando o Maven Wrapper:
+#### Execute a aplicação utilizando o Maven Wrapper:
 
 >.\mvnw spring-boot:run
 >

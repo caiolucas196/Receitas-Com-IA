@@ -1,7 +1,7 @@
 package estudo.caio.receitascomia.controller;
 
 import estudo.caio.receitascomia.dto.FoodDTO;
-import estudo.caio.receitascomia.dto.GerarReceitaRequest; // Import do DTO que criamos
+import estudo.caio.receitascomia.dto.GerarReceitaRequest;
 import estudo.caio.receitascomia.service.FoodItemService;
 import estudo.caio.receitascomia.service.RecipeAiService;
 import jakarta.validation.Valid;
@@ -36,7 +36,7 @@ public class FoodItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(foodCreate);
     }
 
-    // 2. READ - Listar todos (Usado para popular a seleção no front-end)
+    // 2. READ - Listar todos
     @GetMapping("/listar")
     public ResponseEntity<List<FoodDTO>> listarReceitas() {
         return ResponseEntity.status(HttpStatus.OK).body(foodItemservice.listar());
@@ -69,17 +69,4 @@ public class FoodItemController {
         String receita = recipeAiService.gerarReceitaComIngredientesSelecionados(request);
         return ResponseEntity.ok(receita);
     }
-
-    //7.VALIDAÇÃO DE KEY
-    @GetMapping("/status-ai")
-    public ResponseEntity<Boolean> verificarStatusAi() {
-        try {
-            // Envia uma mensagem mínima de teste para a IA
-            String resposta = recipeAiService.testarConexaoSimples(); // método rápido que retorna uma string curta
-            return ResponseEntity.ok(true);
-        } catch (Exception e) {
-            return ResponseEntity.ok(false);
-        }
-    }
-
 }
