@@ -3,9 +3,11 @@ import api from '../services/api';
 
 export default function ItemAdd() {
     const [nome, setNome] = useState('');
-    const [quantidade, setQuantidade] = useState('');
-    const [unidadeMedida, setUnidadeMedida] = useState('UNIDADE'); // Ex: UNIDADE, KG, LITROS
+    const [quantidade, setQuantidade] = useState(''); // Ex: 5 (pacotes)
+    const [valorMedida, setValorMedida] = useState(''); // Ex: 2 ou 1000 (peso/volume de cada unidade)
+    const [unidadeMedida, setUnidadeMedida] = useState('QUILOGRAMA'); // KG, GRAMA, LITRO, MILILITRO
     const [categoria, setCategoria] = useState('');
+    const [expirationDate, setExpirationDate] = useState('');
     const [loading, setLoading] = useState(false);
     const [mensagem, setMensagem] = useState(null);
 
@@ -15,23 +17,26 @@ export default function ItemAdd() {
         setMensagem(null);
 
         try {
-            // Ajuste a rota '/api/itens' conforme o endpoint real do seu Controller Java
-            await api.post('/api/itens', {
-                nome,
-                quantidade: Number(quantidade),
-                unidadeMedida,
-                categoria
+            await api.post('/receitas/adicionar', {
+                name: nome,
+                quantity: Number(quantidade),
+                measurementValue: Number(valorMedida), // Valor do peso/volume unitário
+                unit: unidadeMedida,
+                category: categoria,
+                expirationDate: expirationDate
             });
 
             setMensagem({ tipo: 'sucesso', texto: 'Item adicionado com sucesso à despensa!' });
-            // Limpa o formulário
             setNome('');
             setQuantidade('');
-            setUnidadeMedida('UNIDADE');
+            setValorMedida('');
+            setUnidadeMedida('QUILOGRAMA');
             setCategoria('');
+            setExpirationDate('');
         } catch (error) {
-            console.error('Erro ao cadastrar item:', error);
-            setMensagem({ tipo: 'erro', texto: 'Erro ao conectar com o backend. Verifique se a API está rodando.' });
+            console.error('Erro detalhado ao cadastrar item:', error.response?.data || error.message);
+            const mensagemErro = error.response?.data?.message || 'Erro ao conectar com o backend. Verifique se a API está rodando.';
+            setMensagem({ tipo: 'erro', texto: mensagemErro });
         } finally {
             setLoading(false);
         }
@@ -40,7 +45,7 @@ export default function ItemAdd() {
     return (
         <div style={{ maxWidth: '600px', background: '#fff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
             <h2 style={{ marginBottom: '10px', color: '#1e1e2f' }}>Adicionar Novo Item</h2>
-            <p style={{ color: '#666', marginBottom: '25px' }}>Cadastre os mantimentos disponíveis na sua despensa.</p>
+            <p style={{ color: '#666', marginBottom: '25px' }}>Cadastre os mantimentos disponíveis na sua despensa separando quantidade e peso/volume.</p>
 
             {mensagem && (
                 <div style={{
@@ -62,21 +67,35 @@ export default function ItemAdd() {
                         type="text"
                         value={nome}
                         onChange={(e) => setNome(e.target.value)}
-                        placeholder="Ex: Arroz, Frango, Tomate..."
+                        placeholder="Ex: Arroz, Leite, Feijão..."
                         required
                         style={inputStyle}
                     />
                 </div>
 
-                <div style={{ display: 'flex', gap: '20px' }}>
+                {/* Linha da Quantidade de itens e o Valor da Medida */}
+                <div style={{ display: 'flex', gap: '15px' }}>
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontWeight: 'bold', fontSize: '14px', color: '#333' }}>Quantidade:</label>
+                        <label style={{ fontWeight: 'bold', fontSize: '14px', color: '#333' }}>Quantidade (Itens):</label>
+                        <input
+                            type="number"
+                            step="1"
+                            value={quantidade}
+                            onChange={(e) => setQuantidade(e.target.value)}
+                            placeholder="Ex: 5 (unidades)"
+                            required
+                            style={inputStyle}
+                        />
+                    </div>
+
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontWeight: 'bold', fontSize: '14px', color: '#333' }}>Peso/Volume Unitário:</label>
                         <input
                             type="number"
                             step="any"
-                            value={quantidade}
-                            onChange={(e) => setQuantidade(e.target.value)}
-                            placeholder="Ex: 1, 500..."
+                            value={valorMedida}
+                            onChange={(e) => setValorMedida(e.target.value)}
+                            placeholder="Ex: 2 (para 2kg)"
                             required
                             style={inputStyle}
                         />
@@ -89,13 +108,24 @@ export default function ItemAdd() {
                             onChange={(e) => setUnidadeMedida(e.target.value)}
                             style={inputStyle}
                         >
-                            <option value="UNIDADE">Unidade(s)</option>
-                            <option value="KG">Quilo(s) - KG</option>
-                            <option value="GRAMAS">Grama(s) - g</option>
-                            <option value="LITROS">Litro(s) - L</option>
-                            <option value="ML Mililitros">Mililitro(s) - mL</option>
+                            <option value="QUILOGRAMA">Quilograma(s) - kg</option>
+                            <option value="GRAMA">Grama(s) - g</option>
+                            <option value="LITRO">Litro(s) - L</option>
+                            <option value="MILILITRO">Mililitro(s) - ml</option>
                         </select>
                     </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '14px', color: '#333' }}>Data de Validade:</label>
+                    <input
+                        type="date"
+                        value={expirationDate}
+                        onChange={(e) => setExpirationDate(e.target.value)}
+                        required
+                        style={inputStyle}
+                    />
+                    <small style={{ color: '#888', fontSize: '12px' }}>Dica: Clique no ícone de calendário para selecionar corretamente.</small>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

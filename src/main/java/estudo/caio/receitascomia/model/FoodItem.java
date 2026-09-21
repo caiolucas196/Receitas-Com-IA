@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
 
 @Entity
@@ -24,14 +23,20 @@ public class FoodItem {
     private String name;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Category category;
 
     @Column(nullable = false)
-    private Double quantity; // Alterado para Double para aceitar frações (ex: 1.5 kg ou 500 ml)
+    private Double quantity;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UnitOfMeasure unit; // Nova unidade de medida (QUILOGRAMA, GRAMA, LITRO, MILILITRO, UNIDADE)
+    private UnitOfMeasure unit;
 
-    private LocalDate validade;
+    @Column(name = "expiration_date", nullable = false)
+    private LocalDate expirationDate;
+
+    @Column(name = "measurement_value")
+    private Double measurementValue;
+
 }

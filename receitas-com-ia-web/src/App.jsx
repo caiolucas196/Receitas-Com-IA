@@ -3,7 +3,7 @@ import Dashboard from './pages/Dashboard';
 import ItemList from './pages/ItemList';
 import ItemAdd from './pages/ItemAdd';
 import RecipeGen from './pages/RecipeGen';
-import RecipeHistory from './pages/RecipeHistory';
+import RecipeHistory from './pages/RecipeList';
 
 export default function App() {
     // Controla qual aba está ativa ('dashboard', 'list', 'add', 'recipeGen', 'history')

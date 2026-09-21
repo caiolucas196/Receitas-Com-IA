@@ -47,7 +47,9 @@ public class FoodItemService {
         itemExistente.setName(dto.name());
         itemExistente.setCategory(dto.category());
         itemExistente.setQuantity(dto.quantity());
-        itemExistente.setValidade(dto.validade());
+        itemExistente.setMeasurementValue(dto.measurementValue());
+        itemExistente.setUnit(dto.unit());
+        itemExistente.setExpirationDate(dto.expirationDate());
 
         FoodItem atualizado = foodItemRepository.save(itemExistente);
         return toDTO(atualizado);
@@ -68,8 +70,9 @@ public class FoodItemService {
                 item.getName(),
                 item.getCategory(),
                 item.getQuantity(),
+                item.getMeasurementValue(),
                 item.getUnit(),
-                item.getValidade()
+                item.getExpirationDate()
         );
     }
 
@@ -80,8 +83,9 @@ public class FoodItemService {
         item.setName(dto.name());
         item.setCategory(dto.category());
         item.setQuantity(dto.quantity());
+        item.setMeasurementValue(dto.measurementValue());
         item.setUnit(dto.unit());
-        item.setValidade(dto.validade());
+        item.setExpirationDate(dto.expirationDate());
         return item;
     }
 }

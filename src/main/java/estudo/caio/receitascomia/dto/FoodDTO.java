@@ -11,6 +11,7 @@ public record FoodDTO(
         @NotBlank(message = "O nome não pode estar vazio") String name,
         Category category,
         @NotNull(message = "A quantidade é obrigatória") Double quantity,
+        Double measurementValue,
         @NotNull(message = "A unidade de medida é obrigatória") UnitOfMeasure unit,
-        LocalDate validade
+        LocalDate expirationDate
 ) {}
